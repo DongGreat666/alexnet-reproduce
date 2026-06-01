@@ -6,13 +6,35 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchvision import datasets
 from torchvision import transforms
 
 import config
 
 from models.alexnet import AlexNet
+
+def validate(model, val_loader, criterion, device):
+    model.eval()
+    val_loss = 0.0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for images, labels in val_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+            _, predicted = torch.max(outputs, 1)
+            total += labels.size(0)
+            correct += (correct == labels).sum().item()
+
+    avg_val_loss = val_loss / len(val_loader)
+    val_acc = 100 * correct / total
+    return avg_val_loss, val_acc
 
 
 def main():
@@ -36,12 +58,24 @@ def main():
         )
     ])
 
-    # ===================训练集====================
-    train_dataset = datasets.CIFAR10(
+    # ===================完整训练集====================
+    full_train_dataset = datasets.CIFAR10(
         root=config.DATA_ROOT,
         train=True,
         download=True,
         transform=transform_train
+    )
+
+    # ===================划分 train / val==================
+    val_size = int(len(full_train_dataset) * config.VAL_RATIO)
+    train_size = len(full_train_dataset) - val_size
+
+    train_dataset, val_dataset = random_split(
+        full_train_dataset,
+        [train_size, val_size],
+        generator = torch.Generator().manual_seed(
+            config.RANDOM_SEED
+        )
     )
 
     # ===================DataLoader==================
@@ -49,6 +83,11 @@ def main():
         train_dataset,
         batch_size=config.BATCH_SIZE,
         shuffle=True
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=config.BATCH_SIZE,
+        shuffle=False
     )
 
     # =====================模型=========================
@@ -65,6 +104,7 @@ def main():
         weight_decay=config.WEIGHT_DECAY
     )
 
+    best_val_acc = 0.0
     # ====================开始训练====================
     for epoch in range(config.EPOCHS):
         model.train()
@@ -97,11 +137,24 @@ def main():
         epoch_loss = running_loss / len(train_loader)
         epoch_acc = 100 * correct / total
 
+        val_loss, val_acc = validate(
+            model,
+            val_loader,
+            criterion,
+            device
+        )
+
         print(
             f"Epoch [{epoch+1}/{config.EPOCHS}]"
             f"Loss: {epoch_loss:.4f}"
             f"Acc: {epoch_acc:.2f}%"
+            f"Val Loss: {val_loss:.4f}"
+            f"Val Acc: {val_acc:.2f}"
         )
+
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            torch.save(model.state_dict(), config.BEST_MODEL_PATH)
 
     # =========================保存模型=============================
     torch.save(model.state_dict(), config.LAST_MODEL_PATH)

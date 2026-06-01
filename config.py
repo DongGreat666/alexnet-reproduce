@@ -14,6 +14,8 @@ DATASET_NAME = "CIFAR10"
 NUM_CLASSES = 10
 IN_CHANNELS = 3
 IMAGE_SIZE = 32
+VAL_RATIO = 0.1
+RANDOM_SEED = 42
 
 # =========================模型配置==========================
 DROPOUT = 0.5
