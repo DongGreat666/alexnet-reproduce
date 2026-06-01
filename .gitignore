@@ -1,0 +1,15 @@
+# dataset
+data/
+
+# model checkpoints
+checkpoints/
+
+# logs
+logs/
+
+# cache
+__pycache__/
+*.pyc
+
+# pycharm
+.idea/
