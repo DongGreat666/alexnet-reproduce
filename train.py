@@ -1,6 +1,7 @@
 # 机构：人工智能研究所
 # 人员：东
 # 时间：2026/5/31 18:58
+import csv
 
 import torch
 import torch.nn as nn
@@ -145,19 +146,40 @@ def main():
         )
 
         print(
-            f"Epoch [{epoch+1}/{config.EPOCHS}]"
-            f"Loss: {epoch_loss:.4f}"
-            f"Acc: {epoch_acc:.2f}%"
-            f"Val Loss: {val_loss:.4f}"
+            f"Epoch [{epoch+1}/{config.EPOCHS}] "
+            f"Loss: {epoch_loss:.4f} "
+            f"Acc: {epoch_acc:.2f}% "
+            f"Val Loss: {val_loss:.4f} "
             f"Val Acc: {val_acc:.2f}"
         )
 
+        with open(config.TRAIN_LOG_PATH, mode="a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                epoch + 1,
+                epoch_loss,
+                epoch_acc,
+                val_loss,
+                val_acc
+            ])
+
+
         if val_acc > best_val_acc:
             best_val_acc = val_acc
-            torch.save(model.state_dict(), config.BEST_MODEL_PATH)
+            torch.save({
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "best_val_acc": best_val_acc
+            }, config.BEST_MODEL_PATH)
 
     # =========================保存模型=============================
-    torch.save(model.state_dict(), config.LAST_MODEL_PATH)
+    torch.save({
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "best_val_acc": best_val_acc
+            }, config.LAST_MODEL_PATH)
     print("Model Saved!")
 
 

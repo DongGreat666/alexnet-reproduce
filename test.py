@@ -43,9 +43,8 @@ def test():
 
     # ======================加载模型========================
     model = AlexNet().to(device)
-    model.load_state_dict(
-        torch.load(config.LAST_MODEL_PATH, map_location=device)
-    )
+    checkpoint = torch.load(config.BEST_MODEL_PATH, map_location=device)
+    model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
 
     # =======================损失函数========================
