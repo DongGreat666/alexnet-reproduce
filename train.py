@@ -2,6 +2,7 @@
 # 人员：东
 # 时间：2026/5/31 18:58
 import csv
+import os
 
 import torch
 import torch.nn as nn
@@ -14,6 +15,12 @@ from torchvision import transforms
 import config
 
 from models.alexnet import AlexNet
+
+# ================= 创建目录 =================
+
+os.makedirs(config.CHECKPOINT_DIR, exist_ok=True)
+
+os.makedirs(config.LOG_DIR, exist_ok=True)
 
 def validate(model, val_loader, criterion, device):
     model.eval()
@@ -31,7 +38,7 @@ def validate(model, val_loader, criterion, device):
             val_loss += loss.item()
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
-            correct += (correct == labels).sum().item()
+            correct += (predicted == labels).sum().item()
 
     avg_val_loss = val_loss / len(val_loader)
     val_acc = 100 * correct / total
@@ -150,7 +157,7 @@ def main():
             f"Loss: {epoch_loss:.4f} "
             f"Acc: {epoch_acc:.2f}% "
             f"Val Loss: {val_loss:.4f} "
-            f"Val Acc: {val_acc:.2f}"
+            f"Val Acc: {val_acc:.2f}%"
         )
 
         with open(config.TRAIN_LOG_PATH, mode="a", newline="") as f:

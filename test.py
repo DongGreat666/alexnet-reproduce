@@ -1,6 +1,11 @@
 # 机构：人工智能研究所
 # 人员：东
 # 时间：2026/5/31 18:58
+# os 提供与操作系统进行交互的功能，包括文件和目录操作、环境变量管理等。
+import os
+
+# 设置环境变量，允许重复加载库，避免因库冲突导致的错误。
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import torch
 import torch.nn as nn
@@ -11,6 +16,8 @@ from torchvision import transforms
 
 import config
 from models.alexnet import AlexNet
+
+from utils import plot
 
 def test():
     # =========================设备========================
@@ -53,7 +60,6 @@ def test():
     test_loss = 0.0
     correct = 0
     total = 0
-
     # =======================测试==========================
     with torch.no_grad():
         for images, labels in test_loader:
@@ -74,7 +80,16 @@ def test():
         print(f"Test Loss: {avg_test_loss:.4f}")
         print(f"Test Acc: {test_acc:.2f}%")
 
+    plot.visualize_predictions(
+        model,
+        test_dataset,
+        device
+    )
+
+
 if __name__ == "__main__":
     test()
+
+
 
 
