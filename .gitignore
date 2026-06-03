@@ -2,10 +2,10 @@
 data/
 
 # model checkpoints
-checkpoints/
+#checkpoints/
 
 # logs
-logs/
+#logs/
 
 # cache
 __pycache__/
